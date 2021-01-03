@@ -1,25 +1,3 @@
-```python
-from IPython.display import display, HTML
-
-display(HTML(data="""
-<style>
-    div#notebook-container    { width: 95%; }
-    div#menubar-container     { width: 95%; }
-    div#maintoolbar-container { width: 99%; }
-</style>
-"""))
-```
-
-
-
-<style>
-    div#notebook-container    { width: 95%; }
-    div#menubar-container     { width: 95%; }
-    div#maintoolbar-container { width: 99%; }
-</style>
-
-
-
 # LOPRO2TS : LOst PROperties Tracking Service in Train Stations
 
 ## Problem specification
