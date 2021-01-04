@@ -117,11 +117,6 @@ import json
 pd.set_option("display.max_columns", None)
 ```
 
-
-```python
-
-```
-
 ### 1. List of train stations
 
 
@@ -135,8 +130,8 @@ list_colums = ["uic_code", "alias_libelle_noncontraint", "latitude_entreeprincip
 df_stations = pd.DataFrame([item["fields"] for item in train_stations])[list_colums]
 ```
 
-    CPU times: user 48.4 ms, sys: 8.06 ms, total: 56.4 ms
-    Wall time: 228 ms
+    CPU times: user 86.9 ms, sys: 19.8 ms, total: 107 ms
+    Wall time: 825 ms
 
 
 
@@ -330,8 +325,8 @@ _map_date = {dt: datetime.strptime(dt[:19], "%Y-%m-%dT%H:%M:%S") for dt in df_lo
 df_lost["Date"] = df_lost.Date.map(_map_date)
 ```
 
-    CPU times: user 12.5 s, sys: 316 ms, total: 12.9 s
-    Wall time: 12.9 s
+    CPU times: user 13.4 s, sys: 221 ms, total: 13.6 s
+    Wall time: 13.6 s
 
 
 
@@ -488,11 +483,6 @@ df_lost.isnull().sum()
 
 > Seems there are a lot of missing train stations. A potential explanation is that a property that is lost in a train during a trip will not be linked to any station.
 
-
-```python
-
-```
-
 ### 3. Found properties
 
 
@@ -506,8 +496,8 @@ df_found["Date"] = df_found.Date.map(_map_date)
 df_found["Date et heure de restitution"] = df_found["Date et heure de restitution"].map(_map_date)
 ```
 
-    CPU times: user 9.83 s, sys: 215 ms, total: 10 s
-    Wall time: 10 s
+    CPU times: user 11.7 s, sys: 308 ms, total: 12.1 s
+    Wall time: 12.1 s
 
 
 
@@ -681,21 +671,6 @@ df_found.isnull().sum()
 
 > There are also a lot of missing recovery dates, corresponding most likely to properties that haven't been recovered yet
 
-
-```python
-
-```
-
-
-```python
-
-```
-
-
-```python
-
-```
-
 ### 3. Daily temperatures
 
 
@@ -708,8 +683,8 @@ _map_date = {dt: datetime.strptime(dt, "%Y-%m-%d") for dt in df_temperature.Date
 df_temperature["Date"] = df_temperature.Date.map(_map_date)
 ```
 
-    CPU times: user 155 ms, sys: 24 ms, total: 179 ms
-    Wall time: 178 ms
+    CPU times: user 116 ms, sys: 11.9 ms, total: 128 ms
+    Wall time: 127 ms
 
 
 
@@ -878,11 +853,6 @@ df_temperature.isnull().sum()
 
 > No missing Values in temperatures dataset
 
-
-```python
-
-```
-
 ## Data model
 
 The ideal situation would be to join the two datasets, `Lost properties declaration dataset` and `Found properties dataset`, so that we can see which object was lost when and where, whether it was found, and if/when it was recovered by its owner. and this will be used as our fact table.<br>Unfortunately there's currently no id that allows us to identify a record in either dataset. We could've used a collection of columns (`Date`, `station code`, `object nature` and `object type`), but there are duplicates in the `Found properties dataset` using these fields.
@@ -923,6 +893,14 @@ The two fact tables are :
 This data model should allwo us to focus on properties loss declaration / recovery and be able to make interesting business related analysis using dimensions like time, stations, property type, ...
 
 ## Project setup
+
+The project structure is the following:
+![folder](assests/folder.png)
+
+* `utils.py` script contains some helper function such as text formatting, csv and json files reading functions with spark, ...
+* `data_quality_tests.py` script contains some data quality tests that are applied to our different tables
+* `etl.py` is the main script and is used for running the ETL pipeline
+
 
 ### 1. Run the ELT pipeline
 
@@ -992,7 +970,7 @@ df_stations.count(), df_time.count(), df_loss_declaration.count(), df_declared_a
 
 
 
-    (2868, 1954979, 1148442, 705747)
+    (2868, 1954980, 1148442, 705747)
 
 
 
@@ -1121,8 +1099,8 @@ The data source is updated daily. However because we are doing some adhoc market
 
 ### 2. Alternative scenarios
 * The data is increased by 100x : then we can switch to a cloud platform such as AWS EMR with some auto-scaling properties. This will allow to absorb the data size increase. We'll use a storage such as S3 because of its cost-efficiency.
-* The data populates a dashboard that must be updated on a daily basis by 7am every day : here we need a scheduling capability. Therefore a service such as AWS Managed Workflows for Apache Airflow (MWAA) is suitable for this purpose. We'll have a script that uses and EMR cluster to download the data on a daily basis from the API and process it with our spark cluster.
-* The database needed to be accessed by 100+ people : if we are using a cloud platform like AWS we can create roles and manage access as we need it. We can still continue using S3 as storage system because it's quite cheap (e.g. 0.005USD per 1000 queries).
+* The data populates a dashboard that must be updated on a daily basis by 7am every day : here we need a scheduling capability. Therefore a tool such as Apache Airflow is suitable for this purpose. We'll have a script that runs peridoically to download the data on a daily basis from the API and process it with our spark cluster.
+* The database needed to be accessed by 100+ people : We can use a distributed database to increase query performance as the number of users (thus number of queries) increases substantially.
 
 
 ```python
